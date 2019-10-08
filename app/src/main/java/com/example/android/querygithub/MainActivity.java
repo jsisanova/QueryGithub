@@ -151,6 +151,9 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         // Return a new AsyncTaskLoader<String> as an anonymous inner class with this as the constructor's parameter
         return new AsyncTaskLoader<String>(this) {
 
+            /* This String will contain the raw JSON from the results of our GitHub search */
+            String mGithubJson;
+
             @Override
             // Think of this as AsyncTask onPreExecute() method,you can start your progress bar,and at the end call forceLoad();
             protected void onStartLoading() {
@@ -160,13 +163,18 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
                     return;
                 }
 
-                /*
-                 * When we initially begin loading in the background, we want to display the
-                 * loading indicator to the user
-                 */
-                mLoadingIndicator.setVisibility(View.VISIBLE);
+                // If we already have CACHED results, just deliver them now. If we don't have any cached results, force a load.
+                if (mGithubJson != null) {
+                    deliverResult(mGithubJson);
+                } else {
+                    /*
+                     * When we initially begin loading in the background, we want to display the
+                     * loading indicator to the user
+                     */
+                    mLoadingIndicator.setVisibility(View.VISIBLE);
 
-                forceLoad();
+                    forceLoad();
+                }
             }
 
             @Override
@@ -193,6 +201,13 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
                     e.printStackTrace();
                     return null;
                 }
+            }
+            // Override deliverResult and store the data in mGithubJson
+            // Call super.deliverResult after storing the data
+            @Override
+            public void deliverResult(String githubJson) {
+                mGithubJson = githubJson;
+                super.deliverResult(githubJson);
             }
         };
     }
